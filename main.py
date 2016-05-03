@@ -1,27 +1,56 @@
+import math
+
+class Shape(object):
+    def S(self, r):
+        raise NotImplementedError
+
+    def V(self, r):
+        raise NotImplementedError
+
+class Rod(Shape):
+    fourThirds = 4 / 3.0
+
+    def __init__(self, l):
+        self.l = l
+        self.a_S = (4 + 2 * l) * math.pi
+        self.a_V = (self.fourThirds + l) * math.pi
+
+    def S(self, r):
+        return self.a_S * r ** 2
+
+    def V(self, r):
+        return self.a_V * r ** 3
+
+def substrateProduct(substrate, coefficient):
+    def product(bacterium):
+        bacterium.iadd_substrate_f(substrate, coefficient)
+
+    return product
+
 class Enzyme(object):
-    """ products is a list of functions that take a cell as a parameter. """
+    """ products is a list of functions that take a bacterium as a parameter. """
     def __init__(self, activeSite_fs, products):
         self.products = products
 
         self.activeSite_fs = {}
 
-        for substrate in self.activeSite_fs:
+        for substrate in activeSite_fs:
             # The first element is the frequency of unbound active sites for a
             # particular substrate, while the second is the frequency of all
             # active sites for that substrate.
             self.activeSite_fs[substrate] = [activeSite_fs[substrate], activeSite_fs[substrate]]
 
-    def t(self, cell):
+    def t(self, bacterium):
         catalyze = True
 
         for substrate in self.activeSite_fs:
             # The frequency of unbound active sites to bind substrate to is the
             # minimum of the frequency of unbound active sites and the
             # frequency of substrate.
-            bind_f = min(self.activeSite_fs[substrate][0], cell.getSubstrate_f(substrate))
+            bind_f = min(self.activeSite_fs[substrate][0], bacterium.getSubstrate_f(substrate))
 
             self.activeSite_fs[substrate][0] -= bind_f
-            cell.isub_substrate_f(substrate, bind_f)
+            bacterium.isub_substrate_f(substrate, bind_f)
 
             # If any active sites are unbound, the enzyme cannot catalyze a
             # reaction.
@@ -33,12 +62,22 @@ class Enzyme(object):
                 self.activeSite_fs[substrate][0] = self.activeSite_fs[substrate][1]
 
             for product in self.products:
-                product(cell)
+                product(bacterium)
 
-class Cell(object):
+class Bacterium(object):
+    def __init__(self, shape, r, enzyme_fs, substrate_fs):
+        self.shape = shape
+        self.r = r
+        self.enzyme_fs = enzyme_fs
+        self.substrate_fs = substrate_fs
+
     def getSubstrate_f(self, substrate):
-        raise NotImplementedError
+        return self.substrate_fs[substrate]
+
+    def iadd_substrate_f(self, substrate, other):
+        """ substrate_f.__iadd__(other) """
+        self.substrate_fs[substrate] += other
 
     def isub_substrate_f(self, substrate, other):
         """ substrate_f.__isub__(other) """
-        raise NotImplementedError
+        self.substrate_fs[substrate] -= other
