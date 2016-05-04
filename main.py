@@ -7,7 +7,7 @@ class Shape(object):
     def V(self, r):
         raise NotImplementedError
 
-class Rod(Shape):
+class Bacillus(Shape):
     fourThirds = 4 / 3.0
 
     def __init__(self, l):
@@ -65,11 +65,15 @@ class Enzyme(object):
                 product(bacterium)
 
 class Bacterium(object):
-    def __init__(self, shape, r, enzyme_fs, substrate_fs):
+    def __init__(self, shape, r, enzymes, substrate_fs):
         self.shape = shape
         self.r = r
-        self.enzyme_fs = enzyme_fs
+        self.enzymes = enzymes
         self.substrate_fs = substrate_fs
+
+    def t(self):
+        for enzyme in self.enzymes:
+            enzyme.t(self)
 
     def getSubstrate_f(self, substrate):
         return self.substrate_fs[substrate]
@@ -81,3 +85,8 @@ class Bacterium(object):
     def isub_substrate_f(self, substrate, other):
         """ substrate_f.__isub__(other) """
         self.substrate_fs[substrate] -= other
+
+glucose = substrateProduct('glucose', 1)
+fructose = substrateProduct('fructose', 1)
+sucrase = Enzyme({'sucrose': 1}, [glucose, fructose])
+pC = Bacterium(Bacillus(2), 1, [sucrase for x in xrange(100000)], {'fructose': 0, 'glucose': 0, 'sucrose': 100000})
