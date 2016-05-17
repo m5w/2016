@@ -31,6 +31,9 @@ def get_substrate_consumption_rate_monod(YIELD_COEFFICIENT, specific_growth_rate
 
     return substrate_consumption_rate_monod
 
+class BacteriumDeath:
+    pass
+
 class Bacterium(object):
     def __init__(self, DEATH_PROBABILITY, growth_rate, substrate_consumption_rate, biomass):
         self._DEATH_PROBABILITY = DEATH_PROBABILITY
