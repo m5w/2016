@@ -85,7 +85,7 @@ class Chemostat(object):
             # obsolete: just add the bacteria to the end
             except BacteriumBinaryFission as bacterium_binary_fission:
                 self._bacteria.append(self._bacteria[bacterium])
-                self._bacteria.append(bacterium_binary_fission.self._bacteria[bacterium]())
+                self._bacteria.append(bacterium_binary_fission.bacterium())
             except(BacteriumDeath): # to-do: remove parentheses
                 pass
             except IndexError:
