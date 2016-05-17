@@ -34,7 +34,7 @@ def get_substrate_consumption_rate_monod(YIELD_COEFFICIENT, specific_growth_rate
 class BacteriumDeath: # to-do: derive this from object
     pass
 
-class BacteriumBinaryFission(object):
+class BacteriumBinaryFission(BaseException):
     def __init__(self, bacterium):
         self._bacterium = bacterium
 
