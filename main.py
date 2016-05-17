@@ -31,7 +31,7 @@ def get_substrate_consumption_rate_monod(YIELD_COEFFICIENT, specific_growth_rate
 
     return substrate_consumption_rate_monod
 
-class BacteriumDeath: # to-do: derive this from object
+class BacteriumDeath(BaseException):
     pass
 
 class BacteriumBinaryFission(BaseException):
@@ -81,12 +81,10 @@ class Chemostat(object):
             try:
                 self._substrate_concentration -= self._bacteria[bacterium].substrate_consumption_rate(substrate_concentration)
                 bacteria.append(self._bacteria[bacterium])
-            # to-do: research if the try block can be executed from an except block
-            # obsolete: just add the bacteria to the end
             except BacteriumBinaryFission as bacterium_binary_fission:
                 self._bacteria.append(self._bacteria[bacterium])
                 self._bacteria.append(bacterium_binary_fission.bacterium())
-            except(BacteriumDeath): # to-do: remove parentheses
+            except BacteriumDeath:
                 pass
             except IndexError:
                 break
