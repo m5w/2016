@@ -42,9 +42,9 @@ class BacteriumBinaryFission(BaseException):
         return self._bacterium
 
 class Bacterium(object):
-    def __init__(self, DEATH_PROBABILITY, BINARY_FISSION_BIOMASS, growth_rate, substrate_consumption_rate, biomass):
-        self._DEATH_PROBABILITY = DEATH_PROBABILITY
+    def __init__(self, BINARY_FISSION_BIOMASS, DEATH_PROBABILITY, growth_rate, substrate_consumption_rate, biomass):
         self._BINARY_FISSION_BIOMASS = BINARY_FISSION_BIOMASS
+        self._DEATH_PROBABILITY = DEATH_PROBABILITY
         self._growth_rate = growth_rate
         self._substrate_consumption_rate = substrate_consumption_rate
         self._biomass = biomass
@@ -56,7 +56,7 @@ class Bacterium(object):
         if self._biomass >= self._BINARY_FISSION_BIOMASS:
             biomass = self._biomass
             self._biomass /= 2.0
-            raise BacteriumBinaryFission(Bacterium(self._DEATH_PROBABILITY, self._BINARY_FISSION_BIOMASS, self._growth_rate, self.substrate_consumption_rate, biomass - self._biomass))
+            raise BacteriumBinaryFission(Bacterium(self._BINARY_FISSION_BIOMASS, self._DEATH_PROBABILITY, self._growth_rate, self.substrate_consumption_rate, biomass - self._biomass))
 
         # Since random.random() ``-> x in the interval [0, 1)" (Python 2.7 online help utility), random.random() will never be less than zero but always less than 1.
         if random.random() < self._DEATH_PROBABILITY:
@@ -84,13 +84,19 @@ class Chemostat(object):
             # to-do: research if the try block can be executed from an except block
             # obsolete: just add the bacteria to the end
             except BacteriumBinaryFission as bacterium_binary_fission:
+                print 'binary fission'
+                print 'len was', len(self._bacteria)
                 self._bacteria.append(self._bacteria[bacterium])
                 self._bacteria.append(bacterium_binary_fission.bacterium())
+                print 'len is', len(self._bacteria)
             except(BacteriumDeath): # to-do: remove parentheses
                 pass
             except IndexError:
                 break
 
+            print 'iadd'
+            print 'bacterium was', bacterium
             bacterium += 1
+            print 'bacterium is', bacterium
 
         self._bacteria = bacteria
