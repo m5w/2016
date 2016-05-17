@@ -76,16 +76,21 @@ class Chemostat(object):
         substrate_concentration = self._substrate_concentration
         bacteria = []
 
-        for bacterium in self._bacteria:
+        bacterium = 0
+        while True:
             try:
-                self._substrate_concentration -= bacterium.substrate_consumption_rate(substrate_concentration)
-                bacteria.append(bacterium)
+                self._substrate_concentration -= self._bacteria[bacterium].substrate_consumption_rate(substrate_concentration)
+                bacteria.append(self._bacteria[bacterium])
             # to-do: research if the try block can be executed from an except block
             # obsolete: just add the bacteria to the end
             except BacteriumBinaryFission as bacterium_binary_fission:
-                self._bacteria.append(bacterium)
-                self._bacteria.append(bacterium_binary_fission.bacterium())
+                self._bacteria.append(self._bacteria[bacterium])
+                self._bacteria.append(bacterium_binary_fission.self._bacteria[bacterium]())
             except(BacteriumDeath): # to-do: remove parentheses
                 pass
+            except IndexError:
+                break
+
+            bacterium += 1
 
         self._bacteria = bacteria
