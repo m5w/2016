@@ -69,3 +69,5 @@ class Chemostat(object):
                 bacteria.append(bacterium)
             except(BacteriumDeath):
                 pass
+
+        self._bacteria = bacteria
