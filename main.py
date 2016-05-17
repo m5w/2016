@@ -38,11 +38,12 @@ class Bacterium(object):
         self._biomass = biomass
 
     def biomass(self):
-        return _biomass
+        return self._biomass
 
     def substrate_consumption_rate(self, substrate_concentration):
+        substrate_consumption_rate_ = self._substrate_consumption_rate(substrate_concentration, self)
         self._biomass += self._growth_rate(substrate_concentration, self)
-        return self._substrate_consumption_rate(substrate_consumption, self)
+        return substrate_consumption_rate_
 
 class Chemostat(object):
     def __init__(self, substrate_concentration):
