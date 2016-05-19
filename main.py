@@ -217,9 +217,8 @@ class TimeMeanBacteriumSpeciesFrequencyObserver(Observer):
         pylab.xlabel(XLABEL_)
         pylab.ylabel(YLABEL_)
 
-        figure()
-
         for BACTERIUM_SPECIES_ in time_species_mean_bacterium_frequency:
+            figure()
             pylab.plot(x, time_species_mean_bacterium_frequency[BACTERIUM_SPECIES_])
             XLABEL_ = 'Time'
             YLABEL_ = str(TRIAL_FREQUENCY) + '-Trial Mean ' + str(BACTERIUM_SPECIES_) + ' Population'
