@@ -4,6 +4,7 @@ import random
 import string
 
 import numpy
+import pylab
 
 def get_specific_growth_rate_monod(MAXIMUM_SPECIFIC_GROWTH_RATE, SUBSTRATE_SATURATION_CONSTANT):
     def specific_growth_rate_monod(SUBSTRATE_CONCENTRATION):
@@ -103,8 +104,6 @@ class Chemostat(object):
         self._bacteria = []
         self._species_bacterium_frequency = {}
 
-        self._substrate_mass = self._substrate_concentration * self._volume
-
     def add_bacteria(self, SPECIES, BACTERIUM_FREQUENCY):
         self._bacteria += [Bacterium(SPECIES) for bacterium in xrange(BACTERIUM_FREQUENCY)]
 
@@ -114,6 +113,7 @@ class Chemostat(object):
             self._species_bacterium_frequency[SPECIES] = BACTERIUM_FREQUENCY
 
     def _get_substrate_concentration(self, INFLOW_SUBSTRATE_CONCENTRATION, INFLOW_VOLUME, OUTFLOW_VOLUME):
+        self._substrate_mass = self._substrate_concentration * self._volume
         self._substrate_mass += INFLOW_SUBSTRATE_CONCENTRATION * INFLOW_VOLUME - self._substrate_concentration * OUTFLOW_VOLUME
         self._volume += INFLOW_VOLUME - OUTFLOW_VOLUME
         self._substrate_concentration = self._substrate_mass / self._volume
@@ -142,6 +142,8 @@ class Chemostat(object):
             bacterium += 1
 
         self._bacteria = bacteria
+
+        return self._substrate_concentration
 
     def get_species_bacterium_frequency(self, BACTERIUM_SPECIES):
         return self._species_bacterium_frequency[BACTERIUM_SPECIES]
@@ -183,8 +185,8 @@ class TimeMeanBacteriumSpeciesFrequencyObserver(Observer):
 
     """ initial_bacterium_frequency is a dict of bacteria species to frequencies. """
     def graph(self, SUBTITLE, TRIAL_FREQUENCY, INITIAL_SUBSTRATE_CONCENTRATION, TIME_FREQUENCY):
-        x = xrange(1 + TIME_FREQUENCY)
-        time_mean_substrate_concentration = [INITIAL_SUBSTRATE_CONCENTRATION]
+        x = xrange(TIME_FREQUENCY)
+        time_mean_substrate_concentration = []
 
         for TRIAL_SUBSTRATE_CONCENTRATION in self._trial_time_substrate_concentration:
             time_mean_substrate_concentration.append(numpy.mean(TRIAL_SUBSTRATE_CONCENTRATION))
@@ -192,8 +194,17 @@ class TimeMeanBacteriumSpeciesFrequencyObserver(Observer):
         time_species_mean_bacterium_frequency = {}
 
         for BACTERIUM_SPECIES_ in self._trial_time_species_bacterium_frequency:
-            for TRIAL_SPECIES_BACTERIUM_FREQUENCY in self._trial_time_species_bacterium_frequency[BACTERIUM_SPECIES_]:
-                time_species_mean_bacterium_frequency[BACTERIUM_SPECIES_].append(numpy.mean(TRIAL_SPECIES_BACTERIUM_FREQUENCY))
+            iterator = self._trial_time_species_bacterium_frequency[BACTERIUM_SPECIES_].__iter__()
+            trial_species_bacterium_frequency = next(iterator)
+            time_species_mean_bacterium_frequency[BACTERIUM_SPECIES_] = [numpy.mean(trial_species_bacterium_frequency)]
+
+            while True:
+                try:
+                    trial_species_bacterium_frequency = next(iterator)
+                except StopIteration:
+                    break
+
+                time_species_mean_bacterium_frequency[BACTERIUM_SPECIES_].append(numpy.mean(trial_species_bacterium_frequency))
 
         figure()
         pylab.plot(x, time_mean_substrate_concentration)
@@ -257,8 +268,8 @@ class PeriodStep(Step):
         return self._OUTFLOW_VOLUME
 
     def do(self, initial_time, observer, chemostat):
-        for time in xrange(initial_time, initial_time + self._period):
-            observer.observe_time(chemostat, time, self._INFLOW_SUBSTRATE_CONCENTRATION, self._INFLOW_VOLUME, self._OUTFLOW_VOLUME)
+        for TIME in xrange(initial_time, initial_time + self._PERIOD):
+            observer.observe_time(chemostat, TIME, self._INFLOW_SUBSTRATE_CONCENTRATION, self._INFLOW_VOLUME, self._OUTFLOW_VOLUME)
 
 class BacteriaStep(Step):
     def __init__(self, BACTERIUM_SPECIES, BACTERIUM_FREQUENCY):
@@ -329,11 +340,7 @@ class Procedure(object):
 
             time += step.get_period()
 
-        self._subtitle = join(subtitle, ';')
-
-        if self._subtitle is not '':
-            self.subtitle = '\n' + self._subtitle + '.'
-
+        self._subtitle = '\n' + join(subtitle, ';') + '.'
         self._TIME_FREQUENCY = time
 
     @classmethod
@@ -354,10 +361,10 @@ class Procedure(object):
             self._bacteria_species.append(step.get_bacterium_species())
 
     def do(self, INITIAL_SUBSTRATE_CONCENTRATION, INITIAL_VOLUME):
-        observer = self._OBSERVER_TYPE(self._TIME_FREQUENCY, self._bacteria)
-        strTrialF = '{:,}'.format(self.trialF)
+        observer = self._OBSERVER_TYPE(self._TIME_FREQUENCY, self._bacteria_species)
+        strTrialF = '{:,}'.format(self._TRIAL_FREQUENCY)
         formatStrTrial = '{:>' + str(len(strTrialF)) + ',}'
-        floatTrialF = float(self.trialF)
+        floatTrialF = float(self._TRIAL_FREQUENCY)
         strPrecision = str(max(0, len(str(1 / floatTrialF)) - 4))
         formatStrPercent = '{:>' + str(len(('{:.' + strPrecision + '%}').format(1))) + '.' + strPrecision + '%}'
 
@@ -365,7 +372,7 @@ class Procedure(object):
             intTrial = 1 + trial
             print ('trial ' + formatStrTrial + ' of ' + strTrialF + ' (' + formatStrPercent + ')').format(intTrial, intTrial / float(floatTrialF))
             time = 0
-            chemostat = Chemostat(self._INFLOW_SUBSTRATE_CONCENTRATION, self._INFLOW_VOLUME)
+            chemostat = Chemostat(INITIAL_SUBSTRATE_CONCENTRATION, INITIAL_VOLUME)
 
             for STEP in self._STEPS:
                 STEP.do(time, observer, chemostat)
