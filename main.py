@@ -45,13 +45,14 @@ class BacteriumBinaryFission(BaseException):
         return self._BACTERIUM
 
 class BacteriumSpecies(object):
-    def __init__(self, STR_, BINARY_FISSION_BIOMASS, DEATH_PROBABILITY, growth_rate, substrate_consumption_rate, BIOMASS):
+    def __init__(self, STR_, BINARY_FISSION_BIOMASS, DEATH_PROBABILITY, growth_rate, substrate_consumption_rate):
         self._STR_ = STR_
         self._BINARY_FISSION_BIOMASS = BINARY_FISSION_BIOMASS
         self._DEATH_PROBABILITY = DEATH_PROBABILITY
         self._growth_rate = growth_rate
         self._substrate_consumption_rate = substrate_consumption_rate
-        self._BIOMASS = BIOMASS
+
+        self._BIOMASS = self._BINARY_FISSION_BIOMASS / 2.0
 
     def __str__(self):
         return self._STR_
@@ -69,7 +70,7 @@ class BacteriumSpecies(object):
         return self._substrate_consumption_rate
 
     def get_biomass(self):
-        return self._BIOMASS
+        return random.uniform(self._BIOMASS, self._BINARY_FISSION_BIOMASS)
 
 class Bacterium(object):
     def __init__(self, SPECIES):
@@ -140,6 +141,8 @@ class Chemostat(object):
                 break
 
             bacterium += 1
+
+        self._substrate_concentration = max(self._substrate_concentration, 0)
 
         self._bacteria = bacteria
 
@@ -218,7 +221,7 @@ class TimeMeanBacteriumSpeciesFrequencyObserver(Observer):
             figure()
             pylab.plot(x, time_species_mean_bacterium_frequency[BACTERIUM_SPECIES_])
             XLABEL_ = 'Time'
-            YLABEL_ = str(TRIAL_FREQUENCY) + '-Trial Mean ' + str(BACTERIUM_SPECIES_) + ' Frequency'
+            YLABEL_ = str(TRIAL_FREQUENCY) + '-Trial Mean ' + str(BACTERIUM_SPECIES_) + ' Population'
             pylab.title(YLABEL_ + ' v. ' + XLABEL_ + SUBTITLE)
             pylab.xlabel(XLABEL_)
             pylab.ylabel(YLABEL_)
